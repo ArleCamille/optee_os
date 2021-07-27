@@ -53,6 +53,22 @@ static void smc_arch_handler(struct thread_smc_args *args)
 	}
 }
 
+static void smc_gpu_handler (struct thread_smc_args *args)
+{
+	uint32_t smc_fid = args->a0;
+	uint32_t feature_fid = args->a1;
+
+	switch (smc_fid)
+	{
+	case 1:
+		args->a0 = ARM_SMCCC_RET_NOT_SUPPORTED;
+		break;
+	default:
+		args->a0 = OPTEE_SMC_RETURN_UNKNOWN_FUNCTION;
+		break;
+	}
+}
+
 uint32_t sm_from_nsec(struct sm_ctx *ctx)
 {
 	uint32_t *nsec_r0 = (uint32_t *)(&ctx->nsec.r0);
@@ -80,6 +96,9 @@ uint32_t sm_from_nsec(struct sm_ctx *ctx)
 		break;
 	case OPTEE_SMC_OWNER_ARCH:
 		smc_arch_handler(args);
+		return SM_EXIT_TO_NON_SECURE;
+	case OPTEE_SMC_OWNER_GPU:
+		smc_gpu_handler (args);
 		return SM_EXIT_TO_NON_SECURE;
 	default:
 		break;
