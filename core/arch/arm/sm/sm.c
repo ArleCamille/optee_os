@@ -12,6 +12,7 @@
 #include <sm/optee_smc.h>
 #include <sm/sm.h>
 #include <sm/std_smc.h>
+#include <mm/core_mmu.h>
 #include <string.h>
 #include "sm_private.h"
 
@@ -57,11 +58,13 @@ static void smc_gpu_handler (struct thread_smc_args *args)
 {
 	uint32_t smc_fid = args->a0;
 	uint32_t feature_fid = args->a1;
-
-	switch (smc_fid)
+	TEE_Result ret;
+	switch (OPTEE_SMC_FUNC_NUM(smc_fid))
 	{
 	case 1:
-		args->a0 = ARM_SMCCC_RET_NOT_SUPPORTED;
+		// dma_addr, 1, 0
+		ret = core_mmu_map_contiguous_pages((vaddr_t)(args->a1), (paddr_t)(args->a1), 1, MEM_AREA_TEE_RAM_RW);
+		args->a0 = ret;
 		break;
 	default:
 		args->a0 = OPTEE_SMC_RETURN_UNKNOWN_FUNCTION;
