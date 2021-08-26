@@ -175,6 +175,14 @@ static void tee_entry_vm_destroyed(struct thread_smc_args *args)
 }
 #endif
 
+static void tee_entry_gpu_map_memory (struct thread_smc_args *args)
+{
+	TEE_Result ret;
+	ret = core_mmu_map_contiguous_pages((vaddr_t)(args->a1), (paddr_t)(args->a1), 1, MEM_AREA_TEE_RAM_RW);
+	args->a0 = ret;
+	break;
+}
+
 /* Note: this function is weak to let platforms add special handling */
 void __weak tee_entry_fast(struct thread_smc_args *args)
 {
@@ -239,6 +247,9 @@ void __tee_entry_fast(struct thread_smc_args *args)
 		tee_entry_vm_destroyed(args);
 		break;
 #endif
+
+	case OPTEE_SMC_GPU_ASSIGN_MEMORY:
+		tee_entry_gpu_map_memory (args);
 
 	default:
 		args->a0 = OPTEE_SMC_RETURN_UNKNOWN_FUNCTION;

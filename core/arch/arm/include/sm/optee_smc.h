@@ -582,6 +582,19 @@
 #define OPTEE_SMC_RETURN_RPC_CMD \
 	OPTEE_SMC_RPC_VAL(OPTEE_SMC_RPC_FUNC_CMD)
 
+/*
+ * Assigns corresponding DMA page on the trusted memory
+ * "Call" register usage:
+ * a0	OPTEE_SMC_GPU_ASSIGN_MEMORY
+ * a1	The physical address to assign
+ * a2-7	preserved
+ */
+#define OPTEE_SMC_GPU_FUNC_ASSIGN_MEMORY	U(1)
+#define OPTEE_SMC_GPU_ASSIGN_MEMORY \
+	OPTEE_SMC_CALL_VAL(OPTEE_SMC_32, OPTEE_SMC_FAST_CALL, \
+			   OPTEE_SMC_OWNER_GPU, \
+			   OPTEE_SMC_GPU_FUNC_ASSIGN_MEMORY)
+
 /* Returned in a0 */
 #define OPTEE_SMC_RETURN_UNKNOWN_FUNCTION U(0xFFFFFFFF)
 
