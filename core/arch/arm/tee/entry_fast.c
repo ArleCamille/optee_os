@@ -177,8 +177,8 @@ static void tee_entry_vm_destroyed(struct thread_smc_args *args)
 
 static void tee_entry_gpu_map_memory (struct thread_smc_args *args)
 {
-	TEE_Result ret = TEE_SUCCESS;
-	register_phys_mem (MEM_AREA_IO_SEC, (paddr_t)(args->a1), SMALL_PAGE_SIZE);
+	TEE_Result ret;
+	ret = core_mmu_map_contiguous_pages((vaddr_t)(args->a1), (paddr_t)(args->a1), 1, MEM_AREA_TEE_RAM_RW);
 	args->a0 = ret;
 }
 
