@@ -40,7 +40,6 @@ register_dynamic_shm(DRAM1_BASE, DRAM1_SIZE_NSEC);
 #ifdef DRAM2_SIZE_NSEC
 register_dynamic_shm(DRAM2_BASE, DRAM2_SIZE_NSEC);
 #endif
-register_phys_mem_pgdir (MEM_AREA_IO_SEC, 0xb2d00000, 0x8000000);
 
 void console_init(void)
 {
