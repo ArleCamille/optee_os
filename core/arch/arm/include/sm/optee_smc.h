@@ -595,6 +595,34 @@
 			   OPTEE_SMC_OWNER_GPU, \
 			   OPTEE_SMC_GPU_FUNC_ASSIGN_MEMORY)
 
+/*
+ * Assigns corresponding DMA region to the given TZASC
+ * "Call" register usage:
+ * a0	OPTEE_SMC_GPU_SET_TZASC_REGION (10 from region)
+ * a1	CPU address to limit access
+ * a2	Size of the region
+ * a3	TZASC zone number to assign
+ * a4-7	preserved
+ */
+#define OPTEE_SMC_GPU_FUNC_SET_TZASC_REGION	U(10)
+#define OPTEE_SMC_GPU_SET_TZASC_REGION \
+	OPTEE_SMC_CALL_VAL(OPTEE_SMC_32, OPTEE_SMC_FAST_CALL, \
+				OPTEE_SMC_OWNER_GPU, \
+				OPTEE_SMC_GPU_FUNC_SET_TZASC_REGION)
+
+/*
+ * Gets the TZASC region for the DMA address
+ * "Call" register usage:
+ * a0	OPTEE_SMC_GPU_GET_TZASC_REGION (11 from region)
+ * a1	CPU address to probe
+ * a2-7	preserved
+ */
+#define OPTEE_SMC_GPU_FUNC_SET_TZASC_REGION	U(11)
+#define OPTEE_SMC_GPU_GET_TZASC_REGION \
+	OPTEE_SMC_CALL_VAL(OPTEE_SMC_32, OPTEE_SMC_FAST_CALL, \
+				OPTEE_SMC_OWNER_GPU, \
+				OPTEE_SMC_GPU_FUNC_GET_TZASC_REGION)
+
 /* Returned in a0 */
 #define OPTEE_SMC_RETURN_UNKNOWN_FUNCTION U(0xFFFFFFFF)
 

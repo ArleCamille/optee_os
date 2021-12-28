@@ -13,6 +13,10 @@
 #include <kernel/misc.h>
 #include <mm/core_mmu.h>
 
+#ifdef CFG_TZC400
+#include <drivers/tzc400.h>
+#endif
+
 #ifdef CFG_CORE_RESERVED_SHM
 static void tee_entry_get_shm_config(struct thread_smc_args *args)
 {
@@ -183,6 +187,61 @@ static void tee_entry_gpu_map_memory (struct thread_smc_args *args)
 	args->a0 = ret;
 }
 
+static void tee_entry_gpu_get_tzasc_region (struct thread_smc_args *args)
+{
+	TEE_Result ret = 0xFFFFFFFF;
+#ifdef CFG_TZC400
+	uint8_t i;
+	struct tzc_region_config cfg;
+	TEE_Result err;
+	for (i = 1; i < 9; i++)
+	{
+		err = tzc_get_region_config (i, &cfg);
+		if (err == TEE_SUCCESS)
+		{
+			if (cfg.base <= args->a1 && cfg.top > args->a1)
+			{
+				args->a0 = i;
+				return 0;
+			}
+		}
+	}
+	ret = TEE_ERROR_CORRUPT_OBJECT;
+#endif
+	return ret;
+}
+
+static void tee_entry_gpu_set_tzasc_region (struct thread_smc_args *args)
+{
+	TEE_Result ret = 0xFFFFFFFF;
+#ifdef CFG_TZC400
+	uint8_t i;
+	struct tzc_region_config cfg;
+	TEE_Result err;
+	uint64_t base = args->a1;
+	uint64_t top = args->a1 + args->a2;
+	for (i = 1; i < 9; i++)
+	{
+		err = tzc_get_region_config (i, &cfg);
+		if (err == TEE_SUCCESS)
+		{
+			if (base < cfg.top && top <= cfg.base)
+				return TEE_ERROR_STORAGE_NOT_AVAILABLE;
+		}
+	}
+	cfg.filters = 0;
+	cfg.base = base;
+	cfg.top = top;
+	cfg.sec_attr = TZC_REGION_S_RDWR;
+	cfg.ns_device_access = 0;
+
+	tzc_configure_region ((uint8_t) args->a3, &cfg);
+
+	ret = TEE_SUCCESS;
+#endif
+	return ret;
+}
+
 /* Note: this function is weak to let platforms add special handling */
 void __weak tee_entry_fast(struct thread_smc_args *args)
 {
@@ -250,6 +309,12 @@ void __tee_entry_fast(struct thread_smc_args *args)
 
 	case OPTEE_SMC_GPU_ASSIGN_MEMORY:
 		tee_entry_gpu_map_memory (args);
+		break;
+	case OPTEE_SMC_GPU_GET_TZASC_REGION:
+		tee_entry_gpu_get_tzasc_region (args);
+		break;
+	case OPTEE_SMC_GPU_SET_TZASC_REGION:
+		tee_entry_gpu_set_tzasc_region (args);
 		break;
 	default:
 		args->a0 = OPTEE_SMC_RETURN_UNKNOWN_FUNCTION;
