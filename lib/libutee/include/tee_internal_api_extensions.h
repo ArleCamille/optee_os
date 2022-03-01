@@ -78,10 +78,10 @@ TEE_Result tee_invoke_supp_plugin(const TEE_UUID *uuid, uint32_t cmd,
 				  uint32_t sub_cmd, void *buf, size_t len,
 				  size_t *outlen);
 
-struct {
+struct gpumem_list {
 	void *region;
 	uint8_t aeskey[16];
-	gpumem_list_t *next;
+	struct gpumem_list *next;
 } gpumem_list_t;
 
 /*
