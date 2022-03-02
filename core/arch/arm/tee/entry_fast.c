@@ -183,6 +183,18 @@ static void tee_entry_gpu_map_memory (struct thread_smc_args *args)
 	args->a0 = ret;
 }
 
+static void tee_entry_gpu_lock_memory (struct thread_smc_args *args)
+{
+	TEE_Result ret;
+	ret = 0;
+}
+
+static void tee_entry_gpu_survey_memory (struct thread_smc_args *args)
+{
+	TEE_Result ret;
+	ret = 0;
+}
+
 /* Note: this function is weak to let platforms add special handling */
 void __weak tee_entry_fast(struct thread_smc_args *args)
 {
@@ -250,6 +262,15 @@ void __tee_entry_fast(struct thread_smc_args *args)
 
 	case OPTEE_SMC_GPU_ASSIGN_MEMORY:
 		tee_entry_gpu_map_memory (args);
+		break;
+	case OPTEE_SMC_GPU_LOCK_MEMORY:
+		tee_entry_gpu_lock_memory (args);
+		break;
+	case OPTEE_SMC_GPU_SURVEY_MEMORY:
+		tee_entry_gpu_survey_memory (args);
+		break;
+	case OPTEE_SMC_GPU_UNLOCK_MEMORY:
+		tee_entry_gpu_unlock_memory (args);
 		break;
 	default:
 		args->a0 = OPTEE_SMC_RETURN_UNKNOWN_FUNCTION;
