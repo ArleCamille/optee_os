@@ -78,4 +78,28 @@ TEE_Result tee_invoke_supp_plugin(const TEE_UUID *uuid, uint32_t cmd,
 				  uint32_t sub_cmd, void *buf, size_t len,
 				  size_t *outlen);
 
+typedef struct gpumem_list {
+	void *region;
+	uint8_t aeskey[16];
+	struct gpumem_list *next;
+} gpumem_list_t;
+
+/*
+ * TEE_AssociateGPUMemory() - associate a hardware memory page
+ *                            with an encryption key.
+ * @aeskey:		AES encryption key of given hardware memory
+ * @region:		hardware memory region
+ *
+ * Return TEE_SUCCESS on success or TEE_ERROR_* on failure.
+ */
+TEE_Result TEE_AssociateGPUMemory(uint8_t *aeskey, void *region);
+
+/*
+ * TEE_DeassociateGPUMemory() - release a hardware memory page.
+ * @region:		hardware memory region
+ * 
+ * Return TEE_SUCCESS on success or TEE_ERROR_* on failure.
+ */
+TEE_Result TEE_DeassociateGPUMemory(void *region);
+
 #endif

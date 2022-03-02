@@ -426,3 +426,43 @@ TEE_Result TEE_CacheInvalidate(char *buf, size_t len)
 {
 	return _utee_cache_operation(buf, len, TEE_CACHEINVALIDATE);
 }
+
+gpumem_list_t *GPUMemoryHead = NULL;
+
+TEE_Result TEE_AssociateGPUMemory(uint8_t *aeskey, void *region)
+{
+	gpumem_list_t *temp = malloc (sizeof (gpumem_list_t));
+	memcpy (temp->aeskey, aeskey, 16);
+	temp->region = region;
+	temp->next = GPUMemoryHead;
+
+	GPUMemoryHead = temp;
+
+	return TEE_SUCCESS;
+}
+
+TEE_Result TEE_DeassociateGPUMemory(void *region)
+{
+	gpumem_list_t *temp;
+	gpumem_list_t *temp2;
+	if (GPUMemoryHead == NULL)
+		return TEE_ERROR_CORRUPT_OBJECT;
+	if (GPUMemoryHead->region == region)
+	{
+		temp = GPUMemoryHead;
+		GPUMemoryHead = GPUMemoryHead->next;
+		free (temp);
+		return TEE_SUCCESS;
+	}
+	for (temp = GPUMemoryHead; temp->next != NULL; temp = temp->next)
+	{
+		if (temp->next->region == region)
+		{
+			temp2 = temp->next;
+			temp->next = temp->next->next;
+			free (temp2);
+			return TEE_SUCCESS;
+		}
+	}
+	return TEE_ERROR_CORRUPT_OBJECT;
+}
