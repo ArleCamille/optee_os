@@ -208,7 +208,7 @@ static void tee_entry_gpu_get_tzasc_region (struct thread_smc_args *args)
 	}
 	ret = TEE_ERROR_CORRUPT_OBJECT;
 #endif
-	return ret;
+	args->a0 = ret;
 }
 
 static void tee_entry_gpu_set_tzasc_region (struct thread_smc_args *args)
@@ -239,7 +239,47 @@ static void tee_entry_gpu_set_tzasc_region (struct thread_smc_args *args)
 
 	ret = TEE_SUCCESS;
 #endif
-	return ret;
+	args->a0 = ret;
+}
+
+static void tee_entry_rkp_set_ttbr0_el1 (static thread_smc_args *args)
+{
+	__asm volatile (
+		"mmid %[mm], %[mm]\n\t"
+		"bfi %[ttbr0_el1], %[mm], #48, #16\n\t"
+		"msr ttbr0_el1, %[ttbr0_el1]\n\t"
+		"isb\n\t"
+		: // empty output operand
+		: [mm] "r" (args->a1), [ttbr0_el1] "r" (args->a4)
+	);
+	args->a0 = TEE_SUCCESS;
+}
+
+static void tee_entry_rkp_erratum_qcom_falkor_1003 (static thread_smc_args *args)
+{
+	__asm volatile (
+		"mrs x3, #1\n\t"
+		"bfi x2, x3, #48, #16\n\t"
+		"msr ttbr0_el1, x2\n\t"
+		"isb\n\t"
+		"bfi x2, %[ttbr0_el1], #0, #48\n\t"
+		"msr ttbr0_el1, x2\n\t"
+		"isb\n\t"
+		: // empty output operand
+		: [ttbr0_el1] "r" (args->a4)
+		: "x2","x3"
+	);
+	args->a0 = TEE_SUCCESS;
+}
+
+static void tee_entry_rkp_erratum_cavium_27456 (static thread_smc_args *args)
+{
+	__asm volatile (
+		"ic	iallu\n\t"
+		"dsb	nsh\n\t"
+		"isb\n\t"
+	);
+	args->a0 = TEE_SUCCESS;
 }
 
 /* Note: this function is weak to let platforms add special handling */
@@ -315,6 +355,17 @@ void __tee_entry_fast(struct thread_smc_args *args)
 		break;
 	case OPTEE_SMC_GPU_SET_TZASC_REGION:
 		tee_entry_gpu_set_tzasc_region (args);
+		break;
+	
+	// RKP and its errata
+	case OPTEE_SMC_RKP_SET_TTBR0_EL1:
+		tee_entry_rkp_set_ttbr0_el1 (args);
+		break;
+	case OPTEE_SMC_RKP_ERRATUM_QCOM_FALKOR_1003:
+		tee_entry_rkp_erratum_qcom_falkor_1003 (args);
+		break;
+	case OPTEE_SMC_RKP_ERRATUM_CAVIUM_27456:
+		tee_entry_rkp_erratum_cavium_27456 (args);
 		break;
 	default:
 		args->a0 = OPTEE_SMC_RETURN_UNKNOWN_FUNCTION;
