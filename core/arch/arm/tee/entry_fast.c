@@ -245,12 +245,10 @@ static void tee_entry_gpu_set_tzasc_region (struct thread_smc_args *args)
 static void tee_entry_rkp_set_ttbr0_el1 (struct thread_smc_args *args)
 {
 	__asm volatile (
-		"mmid %[mm], %[mm]\n\t"
-		"bfi %[ttbr0_el1], %[mm], #48, #16\n\t"
 		"msr ttbr0_el1, %[ttbr0_el1]\n\t"
 		"isb\n\t"
 		: // empty output operand
-		: [mm] "r" (args->a1), [ttbr0_el1] "r" (args->a4)
+		: [ttbr0_el1] "r" (args->a4)
 	);
 	args->a0 = TEE_SUCCESS;
 }
