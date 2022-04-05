@@ -242,7 +242,7 @@ static void tee_entry_gpu_set_tzasc_region (struct thread_smc_args *args)
 	args->a0 = ret;
 }
 
-static void tee_entry_rkp_set_ttbr0_el1 (static thread_smc_args *args)
+static void tee_entry_rkp_set_ttbr0_el1 (struct thread_smc_args *args)
 {
 	__asm volatile (
 		"mmid %[mm], %[mm]\n\t"
@@ -255,7 +255,7 @@ static void tee_entry_rkp_set_ttbr0_el1 (static thread_smc_args *args)
 	args->a0 = TEE_SUCCESS;
 }
 
-static void tee_entry_rkp_erratum_qcom_falkor_1003 (static thread_smc_args *args)
+static void tee_entry_rkp_erratum_qcom_falkor_1003 (struct thread_smc_args *args)
 {
 	__asm volatile (
 		"mrs x3, #1\n\t"
@@ -272,7 +272,7 @@ static void tee_entry_rkp_erratum_qcom_falkor_1003 (static thread_smc_args *args
 	args->a0 = TEE_SUCCESS;
 }
 
-static void tee_entry_rkp_erratum_cavium_27456 (static thread_smc_args *args)
+static void tee_entry_rkp_erratum_cavium_27456 (struct thread_smc_args *args)
 {
 	__asm volatile (
 		"ic	iallu\n\t"
