@@ -256,7 +256,8 @@ static void tee_entry_rkp_set_ttbr0_el1 (struct thread_smc_args *args)
 static void tee_entry_rkp_erratum_qcom_falkor_1003 (struct thread_smc_args *args)
 {
 	__asm volatile (
-		"mrs x3, #1\n\t"
+		"mrs x2, ttbr0_el1\n\t"
+		"mov x3, #1\n\t"
 		"bfi x2, x3, #48, #16\n\t"
 		"msr ttbr0_el1, x2\n\t"
 		"isb\n\t"
