@@ -187,99 +187,29 @@ static void tee_entry_gpu_map_memory (struct thread_smc_args *args)
 	args->a0 = ret;
 }
 
-static void tee_entry_gpu_get_tzasc_region (struct thread_smc_args *args)
+static void tee_entry_gpu_key_exchange (struct thread_smc_args *args)
 {
-	TEE_Result ret = 0xFFFFFFFF;
-#ifdef CFG_TZC400
-	uint8_t i;
-	struct tzc_region_config cfg;
-	TEE_Result err;
-	for (i = 1; i < 9; i++)
+	TEE_Result ret;
+	ret = 0;
+	void* region = (void*) args->a1;
+	gpumem_list_t *temp;
+	if (GPUMemoryHead == NULL)
+		return TEE_ERROR_CORRUPT_OBJECT;
+	for (temp = GPUMemoryHead; temp != NULL; temp = temp->next)
 	{
-		err = tzc_get_region_config (i, &cfg);
-		if (err == TEE_SUCCESS)
+		if (temp->region == region)
 		{
-			if (cfg.base <= args->a1 && cfg.top > args->a1)
-			{
-				args->a0 = i;
-				return 0;
-			}
+			args->a1 = (uint64_t)*(temp->aeskey);
+			args->a2 = (uint64_t)*(temp->aeskey + 8);
+			args->a0 = ret;
+			return;
 		}
 	}
 	ret = TEE_ERROR_CORRUPT_OBJECT;
-#endif
 	args->a0 = ret;
 }
 
-static void tee_entry_gpu_set_tzasc_region (struct thread_smc_args *args)
-{
-	TEE_Result ret = 0xFFFFFFFF;
-#ifdef CFG_TZC400
-	uint8_t i;
-	struct tzc_region_config cfg;
-	TEE_Result err;
-	uint64_t base = args->a1;
-	uint64_t top = args->a1 + args->a2;
-	for (i = 1; i < 9; i++)
-	{
-		err = tzc_get_region_config (i, &cfg);
-		if (err == TEE_SUCCESS)
-		{
-			if (base < cfg.top && top <= cfg.base)
-				return TEE_ERROR_STORAGE_NOT_AVAILABLE;
-		}
-	}
-	cfg.filters = 0;
-	cfg.base = base;
-	cfg.top = top;
-	cfg.sec_attr = TZC_REGION_S_RDWR;
-	cfg.ns_device_access = 0;
-
-	tzc_configure_region ((uint8_t) args->a3, &cfg);
-
-	ret = TEE_SUCCESS;
-#endif
-	args->a0 = ret;
-}
-
-static void tee_entry_rkp_set_ttbr0_el1 (struct thread_smc_args *args)
-{
-	__asm volatile (
-		"msr ttbr0_el1, %[ttbr0_el1]\n\t"
-		"isb\n\t"
-		: // empty output operand
-		: [ttbr0_el1] "r" (args->a4)
-	);
-	args->a0 = TEE_SUCCESS;
-}
-
-static void tee_entry_rkp_erratum_qcom_falkor_1003 (struct thread_smc_args *args)
-{
-	__asm volatile (
-		"mrs x2, ttbr0_el1\n\t"
-		"mov x3, #1\n\t"
-		"bfi x2, x3, #48, #16\n\t"
-		"msr ttbr0_el1, x2\n\t"
-		"isb\n\t"
-		"bfi x2, %[ttbr0_el1], #0, #48\n\t"
-		"msr ttbr0_el1, x2\n\t"
-		"isb\n\t"
-		: // empty output operand
-		: [ttbr0_el1] "r" (args->a4)
-		: "x2","x3"
-	);
-	args->a0 = TEE_SUCCESS;
-}
-
-static void tee_entry_rkp_erratum_cavium_27456 (struct thread_smc_args *args)
-{
-	__asm volatile (
-		"ic	iallu\n\t"
-		"dsb	nsh\n\t"
-		"isb\n\t"
-	);
-	args->a0 = TEE_SUCCESS;
-}
+static void 
 
 /* Note: this function is weak to let platforms add special handling */
 void __weak tee_entry_fast(struct thread_smc_args *args)
@@ -349,23 +279,10 @@ void __tee_entry_fast(struct thread_smc_args *args)
 	case OPTEE_SMC_GPU_ASSIGN_MEMORY:
 		tee_entry_gpu_map_memory (args);
 		break;
-	case OPTEE_SMC_GPU_GET_TZASC_REGION:
-		tee_entry_gpu_get_tzasc_region (args);
-		break;
-	case OPTEE_SMC_GPU_SET_TZASC_REGION:
-		tee_entry_gpu_set_tzasc_region (args);
+	case OPTEE_SMC_GPU_KEY_EXCHANGE:
+		tee_entry_gpu_key_exchange (args);
 		break;
 	
-	// RKP and its errata
-	case OPTEE_SMC_RKP_SET_TTBR0_EL1:
-		tee_entry_rkp_set_ttbr0_el1 (args);
-		break;
-	case OPTEE_SMC_RKP_ERRATUM_QCOM_FALKOR_1003:
-		tee_entry_rkp_erratum_qcom_falkor_1003 (args);
-		break;
-	case OPTEE_SMC_RKP_ERRATUM_CAVIUM_27456:
-		tee_entry_rkp_erratum_cavium_27456 (args);
-		break;
 	default:
 		args->a0 = OPTEE_SMC_RETURN_UNKNOWN_FUNCTION;
 		break;

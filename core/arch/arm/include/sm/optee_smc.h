@@ -602,74 +602,16 @@
 			   OPTEE_SMC_GPU_FUNC_ASSIGN_MEMORY)
 
 /*
- * Assigns corresponding DMA region to the given TZASC
+ * Provides key of the given memory.
  * "Call" register usage:
- * a0	OPTEE_SMC_GPU_SET_TZASC_REGION (10 from region)
- * a1	CPU address to limit access
- * a2	Size of the region
- * a3	TZASC zone number to assign
- * a4-7	preserved
+ * a0	OPTEE_SMC_GPU_KEY_EXCHANGE
+ * a1	The physical address for key exchange
+ * a2-4	Used only for return value
  */
-#define OPTEE_SMC_GPU_FUNC_SET_TZASC_REGION	U(10)
-#define OPTEE_SMC_GPU_SET_TZASC_REGION \
-	OPTEE_SMC_CALL_VAL(OPTEE_SMC_64, OPTEE_SMC_FAST_CALL, \
-				OPTEE_SMC_OWNER_GPU, \
-				OPTEE_SMC_GPU_FUNC_SET_TZASC_REGION)
-
-/*
- * Gets the TZASC region for the DMA address
- * "Call" register usage:
- * a0	OPTEE_SMC_GPU_GET_TZASC_REGION (11 from region)
- * a1	CPU address to probe
- * a2-7	preserved
- */
-#define OPTEE_SMC_GPU_FUNC_GET_TZASC_REGION	U(11)
-#define OPTEE_SMC_GPU_GET_TZASC_REGION \
-	OPTEE_SMC_CALL_VAL(OPTEE_SMC_64, OPTEE_SMC_FAST_CALL, \
-				OPTEE_SMC_OWNER_GPU, \
-				OPTEE_SMC_GPU_FUNC_GET_TZASC_REGION)
-
-/*
- * RKP: Sets the TTBR0_EL1 on behalf of the kernel
- * "Call" register usage:
- * a0	OPTEE_SMC_RKP_SET_TTBR0_EL1 (0 from region)
- * a1	MM struct
- * a2,3	unused
- * a4	New TTBR0_EL1 value
- * a5-7	preserved
- */
-#define OPTEE_SMC_RKP_FUNC_SET_TTBR0_EL1 U(0)
-#define OPTEE_SMC_RKP_SET_TTBR0_EL1 \
-	OPTEE_SMC_CALL_VAL(OPTEE_SMC_64, OPTEE_SMC_FAST_CALL, \
-				OPTEE_SMC_OWNER_RKP, \
-				OPTEE_SMC_RKP_FUNC_SET_TTBR0_EL1)
-
-/*
- * RKP erratum for Qualcomm Falkor
- * "Call" register usage:
- * a0	OPTEE_SMC_RKP_ERRATUM_QCOM_FALCOR_1003
- * a1	preserved
- * a2,3	scratch
- * a4	New TTBR0_EL1 value
- * a5-7 preserved
- */
-#define OPTEE_SMC_RKP_ERRATUM_FUNC_QCOM_FALKOR_1003 U(0)
-#define OPTEE_SMC_RKP_ERRATUM_QCOM_FALKOR_1003 \
-	OPTEE_SMC_CALL_VAL(OPTEE_SMC_64, OPTEE_SMC_FAST_CALL, \
-				OPTEE_SMC_OWNER_RKP_ERRATUM, \
-				OPTEE_SMC_RKP_ERRATUM_FUNC_QCOM_FALKOR_1003)
-
-/*
- * RKP erratum for Cavium?
- * "Call" register usage:
- * a0	OPTEE_SMC_RKP_ERRATUM_CAVIUM_27456
- * a1-7	preserved
- */
-#define OPTEE_SMC_RKP_ERRATUM_FUNC_CAVIUM_27456 U(1)
-#define OPTEE_SMC_RKP_ERRATUM_CAVIUM_27456 \
-	OPTEE_SMC_CALL_VAL(OPTEE_SMC_64, OPTEE_SMC_FAST_CALL, \
-				OPTEE_SMC_OWNER_RKP_ERRATUM, \
-				OPTEE_SMC_RKP_ERRATUM_FUNC_CAVIUM_27456)
+#define OPTEE_SMC_GPU_FUNC_KEY_EXCHANGE	U(2)
+#define OPTEE_SMC_GPU_KEY_EXCHANGE \
+	OPTEE_SMC_GPU_FAST_CALL_VAL( \
+		OPTEE_SMC_GPU_FUNC_KEY_EXCHANGE)
 
 /* Returned in a0 */
 #define OPTEE_SMC_RETURN_UNKNOWN_FUNCTION U(0xFFFFFFFF)
